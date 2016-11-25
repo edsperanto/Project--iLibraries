@@ -1,3 +1,10 @@
+// const
+var MODE = { // param for tree() in doublyLinkedList()
+  MAX: 'detailed',
+  MIN: 'simplified'
+};
+
+// iBasics
 var iBasics = (function(){
 
   // map...
@@ -31,7 +38,7 @@ var iBasics = (function(){
     function _newPropertyOfList(property) {
       function _to(value) {
         function _in(obj) {
-          var newPropertyListNum = to.finding._nextNumberOfPropertyList(property).in(obj);
+          var newPropertyListNum = to.finding.nextNumberOfPropertyList(property).in(obj);
           obj[property + newPropertyListNum] = value;
         }
         return { in: _in };
@@ -59,7 +66,7 @@ var iBasics = (function(){
   }
 
   // doublyLinkedList
-  function _doublyLinkedList(newValue, newParent) {
+  function _doublyLinkedList(newValue, newParent, last) {
     // const
     var VALUE = 'value';
     var PARENT = 'parent';
@@ -122,22 +129,23 @@ var iBasics = (function(){
     }
 
     // display node tree
-    function _tree() {
+    function _tree(mode, treeDepth, last) {
+      // variables
       var tabs = "";
       var lastTab = "";
       var tempStr = "";
-
-      for(var i = 0; i < _depth(); i++) {
-        tabs += "\t";
-      }
-      for(var j = 1; j < _depth(); j++) {
-        lastTab += "\t";
-      }
-
+      // track tabs needed
+      (function trackTabs() {
+        var curNode = _ll;
+        if(treeDepth === undefined) { treeDepth = 1; }
+        for(var i = 0; i < treeDepth; i++) { tabs += "\t"; }
+        lastTab = tabs.substr(1);
+      })();
+      // add new lines
       function newLine(str) {
         tempStr = tempStr + str + "\n";
       }
-
+      // display parent value
       function dispParent(parent) {
         if(_ll[PARENT] === null) {
           return null;
@@ -145,24 +153,54 @@ var iBasics = (function(){
           return _ll[PARENT].value;
         }
       }
-
+      // add child
       function dispChild(tabNum) {
         var num = 1;
+        var checkLast = false;
         while(true) {
-          if(_child(num) === undefined) {
-            break;
+          if(_child(num) === undefined) { break; } // break when no more child
+          switch(mode) {
+            case MODE.MAX:
+              newLine(tabs + CHILD + num + ": " + _child(num).tree(mode, (treeDepth+1)));
+              break;
+            case MODE.MIN:
+              if(_child(num+1) === undefined) { checkLast = true; }
+              newLine(_child(num).tree(mode, (treeDepth+1), checkLast));
+              break;
           }
-          newLine(tabs + CHILD + num + ": " + _child(num).tree());
           num++;
         }
       }
+      // show branches
+      function showBranches() {
+        if(treeDepth > 1) {
+          if(!last) {
+            return "┣ ";
+          }else{
+            return "┗ ";
+          }
+        }else{
+          return "";
+        }
+      }
+      // display tree depending on mode
+      switch(mode) {
+        case MODE.MAX:
+          newLine("{");
+          newLine(tabs + "value: " + _ll[VALUE] + ",");
+          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
+          newLine(tabs + "depth: " + _ll[DEPTH] + ",");
+          dispChild();
+          newLine(lastTab + "},");
+          break;
+        case MODE.MIN:
+          newLine(lastTab + showBranches() + _ll[VALUE]);
+          dispChild();
+          break;
+        default:
+          newLine("\'" + mode + "\'" + " is not a valid mode");
+      }
 
-      newLine("{");
-      newLine(tabs + "value: " + _ll[VALUE] + ",");
-      newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
-      newLine(tabs + "depth: " + _ll[DEPTH] + ",");
-      dispChild();
-      newLine(lastTab + "}");
 
       return tempStr;
     }
@@ -175,7 +213,9 @@ var iBasics = (function(){
     // add child node
     function _addChild(value) {
       //var _newChildStr = finding.nextNumberOfPropertyList(CHILD);
-      _ll[_childStr] = _doublyLinkedList(value, this);
+      _newChildStr = _childStr;
+      _ll[_newChildStr] = _doublyLinkedList(value, this);
+      return _ll[_newChildStr];
     }
 
     return {
@@ -205,6 +245,9 @@ var iBasics = (function(){
 
 var to = iBasics();
 var myLL = to.doublyLinkedList('document', null);
-console.log(myLL.tree());
-myLL.addChild('lol');
-console.log(myLL.tree());
+console.log(myLL.tree(MODE.MAX));
+var lol = myLL.addChild('lol');
+console.log(myLL.tree(MODE.MAX));
+var haha = lol.addChild('haha');
+console.log(haha.parent.tree(MODE.MAX));
+console.log(haha.parent.parent.tree(MODE.MIN));

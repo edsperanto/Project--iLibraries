@@ -15,50 +15,35 @@ var iQuery = (function(elementName) {
   var firstChar;
   var _selection;
 
-  // trimming out spaces and detecting selection type
-  elementName = elementName.trim();
-  firstChar = elementName.charAt(FIRST_CHAR);
-
-  // select class or id
-  if(firstChar === ID_SELECTOR) {
-    elementName = elementName.substr(FROM_SECOND_CHAR);
-    _selection = document.getElementById(elementName);
-    _doesntExist();
-  }else if(firstChar === CLASS_SELECTOR) {
-    elementName = elementName.substr(FROM_SECOND_CHAR);
-    _selection = document.getElementsByClassName(elementName);
-    switch(_selection.length) {
-      case 0:
-        _selection = null;
-        _doesntExist();
-        break;
-      case 1:
-        _selection = _selection[0];
-        break;
-    }
-  }else{
-    _selection = document.getElementsByTagName(elementName);
-    switch(_selection.length) {
-      case 0:
-        _selection = null;
-        _doesntExist();
-        break;
-      case 1:
-        _selection = _selection[0];
-        break;
-    }
-  }
-
-  // add event handler
-  function _onEvent(device, action, myFunction) {
+  // select depending on if element is class, id, or tag (auto run)
+  (function _performSelection() {
+    // trimming out spaces and detecting selection type
+    elementName = elementName.trim();
+    firstChar = elementName.charAt(FIRST_CHAR);
+    // distinguish class, id, or tag
     if(firstChar === ID_SELECTOR) {
-
-    }else if(firstChar === CLASS_SELECTOR){
-      if(device === DEVICES.MOUSE) {
-        _addMouseEventsForClass(action, myFunction);
+      elementName = elementName.substr(FROM_SECOND_CHAR);
+      _selection = document.getElementById(elementName);
+      _doesntExist();
+    }else{ // actions for class & tag
+      if(firstChar === CLASS_SELECTOR) { // actions for class
+        elementName = elementName.substr(FROM_SECOND_CHAR);
+        _selection = document.getElementsByClassName(elementName);
+      }else{ // actions for tag
+        firstChar = null;
+        _selection = document.getElementsByTagName(elementName);
+      }
+      switch(_selection.length) {
+        case 0:
+          _selection = null;
+          _doesntExist();
+          break;
+        case 1:
+          _selection = _selection[0];
+          break;
       }
     }
-  }
+  })();
 
   // map mouse actions
   function _mapMouseActions(action) {
@@ -66,6 +51,17 @@ var iQuery = (function(elementName) {
     var mouseActionList = ['click', 'dblclick', 'mouseenter', 'mouseover', 'mousemove', 'mousedown', 'mouseup', 'contextmenu', 'wheel', 'mouseleave', 'mouseout', 'select'];
     var mouseAction = to.mapping(action).from(myActionList).to(mouseActionList);
     return mouseAction;
+  }
+
+  // add event handler
+  function _onEvent(device, action, myFunction) {
+    if(firstChar === ID_SELECTOR) {
+
+    }else if(firstChar === CLASS_SELECTOR || firstChar === null){
+      if(device === DEVICES.MOUSE) {
+        _addMouseEventsForClass(action, myFunction);
+      }
+    }
   }
 
   // add event handler -> class -> mouse
@@ -97,12 +93,13 @@ var iQuery = (function(elementName) {
     }
   }
 
-  // check if doesnt exist
+  // check if element does not exist
   function _doesntExist() {
     var errorStr = "";
     if(_selection) {
       return false;
     }else{
+      // console.log error message
       switch(firstChar) {
         case '.':
           errorStr += "element of class \'" + elementName + "\' ";
