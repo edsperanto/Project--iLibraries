@@ -1,7 +1,8 @@
 // const
 var MODE = { // param for tree() in doublyLinkedList()
   MAX: 'detailed',
-  MIN: 'simplified'
+  MIN: 'simplified',
+  ONE: 'selected-only'
 };
 
 // iBasics
@@ -53,14 +54,47 @@ var iBasics = (function(){
 
   // find...
   function _finding() {
+    function _strMatch(strToMatch) {
+      function _in() {
+        function _string(strMatchedFrom) {
+          var stmlen = strToMatch.length;
+          var smflen = strMatchedFrom.length;
+          for(var i = 0; i < (smflen-stmlen); i++) {
+            if(strMatchedFrom.substr(i, stmlen) === strToMatch) {
+              return strMatchedFrom;
+            }
+          }
+          return null;
+        }
+        function _array(arr) {
+          var currMatch;
+          var matchArr = [];
+          var arrLength = arr.length;
+          for(var i = 0; i < arrLength; i++) {
+            currMatch = to.finding.strMatch(strToMatch).in.string(arr[i]);
+            if(currMatch !== null) {
+              matchArr.push(currMatch);
+            }
+          }
+          return matchArr;
+        }
+        return {
+          string: _string,
+          array: _array
+        };
+      }
+      return { in: _in() };
+    }
     function _nextNumberOfPropertyList(property) {
       function _in(obj) {
-        var matches = 0;
-        Object.getOwnPropertyNames(obj);
+        var tmpPropList = Object.getOwnPropertyNames(obj);
+        var matchNum = to.finding.strMatch(property).in.array(tmpPropList).length;
+        return (matchNum + 1);
       }
       return { in: _in };
     }
     return {
+      strMatch: _strMatch,
       nextNumberOfPropertyList: _nextNumberOfPropertyList
     };
   }
@@ -165,8 +199,13 @@ var iBasics = (function(){
               break;
             case MODE.MIN:
               if(_child(num+1) === undefined) { checkLast = true; }
-              newLine(_child(num).tree(mode, (treeDepth+1), checkLast));
+              tempStr = tempStr + _child(num).tree(mode, (treeDepth+1), checkLast);
+              if(!checkLast) { tempStr += "\n"; }
               break;
+            case MODE.ONE:
+              newLine(tabs + CHILD + num + ": { " + "value: " + _child(num).value +  " },");
+              if(_child(num+1) === undefined) { checkLast = true; }
+              if(checkLast) { tempStr = tempStr.substr(0, (tempStr.length-2)); }
           }
           num++;
         }
@@ -191,11 +230,20 @@ var iBasics = (function(){
           newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
           newLine(tabs + "depth: " + _ll[DEPTH] + ",");
           dispChild();
-          newLine(lastTab + "},");
+          tempStr = tempStr + lastTab + "},";
           break;
         case MODE.MIN:
-          newLine(lastTab + showBranches() + _ll[VALUE]);
+          tempStr = tempStr + lastTab + showBranches() + _ll[VALUE];
+          if(!last) { tempStr += "\n"; }
           dispChild();
+          break;
+        case MODE.ONE:
+          newLine("{");
+          newLine(tabs + "value: " + _ll[VALUE] + ",");
+          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
+          newLine(tabs + "depth: " + _ll[DEPTH] + ",");
+          dispChild();
+          newLine("\n}");
           break;
         default:
           newLine("\'" + mode + "\'" + " is not a valid mode");
@@ -212,8 +260,7 @@ var iBasics = (function(){
 
     // add child node
     function _addChild(value) {
-      //var _newChildStr = finding.nextNumberOfPropertyList(CHILD);
-      _newChildStr = _childStr;
+      var _newChildStr = CHILD + to.finding.nextNumberOfPropertyList(CHILD).in(this.head);
       _ll[_newChildStr] = _doublyLinkedList(value, this);
       return _ll[_newChildStr];
     }
@@ -245,9 +292,7 @@ var iBasics = (function(){
 
 var to = iBasics();
 var myLL = to.doublyLinkedList('document', null);
-console.log(myLL.tree(MODE.MAX));
 var lol = myLL.addChild('lol');
-console.log(myLL.tree(MODE.MAX));
+var fedora = myLL.addChild('fedora');
 var haha = lol.addChild('haha');
-console.log(haha.parent.tree(MODE.MAX));
-console.log(haha.parent.parent.tree(MODE.MIN));
+console.log(myLL.tree(MODE.MAX));
