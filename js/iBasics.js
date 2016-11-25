@@ -100,7 +100,7 @@ var iBasics = (function(){
   }
 
   // doublyLinkedList
-  function _doublyLinkedList(newValue, newParent, last) {
+  var _doublyLinkedList = (function(newValue, newParent, last) {
     // const
     var VALUE = 'value';
     var PARENT = 'parent';
@@ -142,7 +142,6 @@ var iBasics = (function(){
 
     // return child of node (num known)
     function _child(num) {
-      //console.log(_ll[CHILD + num]);
       return _ll[CHILD + num];
     }
 
@@ -187,7 +186,7 @@ var iBasics = (function(){
           return _ll[PARENT].value;
         }
       }
-      // add child
+      // disp child
       function dispChild(tabNum) {
         var num = 1;
         var checkLast = false;
@@ -265,6 +264,19 @@ var iBasics = (function(){
       return _ll[_newChildStr];
     }
 
+    // add property to node
+    function _addProperty(property, value) {
+      _ll[property] = value;
+      return _ll[property];
+    }
+
+    // add property list to node
+    function _addPropertyList(propertyListName, value) {
+      var _newPropertyStr = propertyListName + to.finding.nextNumberOfPropertyList(propertyListName).in(this.head);
+      _ll[_newPropertyStr] = value;
+      return _ll[_newPropertyStr];
+    }
+
     return {
       parent: _parent(),
       value: _value(),
@@ -273,10 +285,12 @@ var iBasics = (function(){
       findChild: _findChild,
       tree: _tree,
       head: _head(),
-      addChild: _addChild
+      addChild: _addChild,
+      addProperty: _addProperty,
+      addPropertyList: _addPropertyList
     };
 
-  }
+  });
 
   //
   var returnObj = {
@@ -295,4 +309,8 @@ var myLL = to.doublyLinkedList('document', null);
 var lol = myLL.addChild('lol');
 var fedora = myLL.addChild('fedora');
 var haha = lol.addChild('haha');
+myLL.addProperty('USA', '#1');
+myLL.addPropertyList('UK', 'tea');
+myLL.addPropertyList('UK', 'queue');
+myLL.addPropertyList('UK', 'queen');
 console.log(myLL.tree(MODE.MAX));
