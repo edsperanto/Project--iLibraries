@@ -59,7 +59,7 @@ var iBasics = (function(){
         function _string(strMatchedFrom) {
           var stmlen = strToMatch.length;
           var smflen = strMatchedFrom.length;
-          for(var i = 0; i < (smflen-stmlen); i++) {
+          for(var i = 0; i <= (smflen-stmlen); i++) {
             if(strMatchedFrom.substr(i, stmlen) === strToMatch) {
               return strMatchedFrom;
             }
@@ -85,6 +85,17 @@ var iBasics = (function(){
       }
       return { in: _in() };
     }
+    function _property(propToMatch) {
+      function _in() {
+        function _object(obj) {
+          var tmpPropList = Object.getOwnPropertyNames(obj);
+          var match = to.finding.strMatch(propToMatch).in.array(tmpPropList);
+          if(match.length > 0) { return obj[match[0]]; }
+        }
+        return { object: _object };
+      }
+      return { in: _in() };
+    }
     function _nextNumberOfPropertyList(property) {
       function _in(obj) {
         var tmpPropList = Object.getOwnPropertyNames(obj);
@@ -95,6 +106,7 @@ var iBasics = (function(){
     }
     return {
       strMatch: _strMatch,
+      property: _property,
       nextNumberOfPropertyList: _nextNumberOfPropertyList
     };
   }
@@ -106,15 +118,42 @@ var iBasics = (function(){
     var PARENT = 'parent';
     var DEPTH = 'depth';
     var CHILD = 'child';
+    var TAB = '\t';
+    var NL = '\n';
 
     // variables
     var _ll = {};
     var _childStr = 'child1';
+    var _isLastChild = false;
 
     // add properties to node
     _ll[VALUE] = newValue;
-    _ll[PARENT] = newParent;
+    _ll[PARENT] = _getParent();
     _ll[DEPTH] = _getDepth();
+
+    // return object
+    var returnObj = {
+      parent: _parent(),
+      value: _value(),
+      depth: _depth(),
+      child: _child,
+      findChild: _findChild,
+      tree: _tree,
+      head: _head(),
+      addChild: _addChild,
+      addProperty: _addProperty,
+      addPropertyList: _addPropertyList,
+      isLastChild: _isLastChild
+    };
+
+    // add 'parent' property to node
+    function _getParent() {
+      if(newParent === undefined) {
+        return null;
+      }else{
+        return newParent;
+      }
+    }
 
     // add 'depth' property to node
     function _getDepth() {
@@ -147,36 +186,37 @@ var iBasics = (function(){
 
     // return child of node (num unknown), search through value
     function _findChild(value) {
-      var _searchNum = 0;
+      var _searchNum = 1;
       var _searchedChild = _ll[CHILD + _searchNum];
-      while(searchedChild.value !== value) {
-        if(searchedChild.value === value) {
-          return searchedChild;
-        }else if(searchedChild === undefined) {
-          break;
-        }
+      while(_searchedChild.value !== value) {
         _searchNum++;
         _searchedChild = _ll[CHILD + _searchNum];
       }
-      return _ll[CHILD + num];
+      return _ll[CHILD + _searchNum];
     }
 
     // display node tree
-    function _tree(mode, treeDepth, last) {
+    function _tree(mode, treeDepth, last, newLayer) {
       // variables
       var tabs = "";
       var lastTab = "";
       var tempStr = "";
+      var endOfBranch = false;
       // track tabs needed
       (function trackTabs() {
         var curNode = _ll;
         if(treeDepth === undefined) { treeDepth = 1; }
-        for(var i = 0; i < treeDepth; i++) { tabs += "\t"; }
+        for(var i = 0; i < treeDepth; i++) {
+          tabs += TAB;
+          if(newLayer === true && i > 0) {
+            tabs += "┃";
+          }
+        }
         lastTab = tabs.substr(1);
       })();
       // add new lines
       function newLine(str) {
-        tempStr = tempStr + str + "\n";
+        tempStr = tempStr + str + NL;
       }
       // display parent value
       function dispParent(parent) {
@@ -190,6 +230,7 @@ var iBasics = (function(){
       function dispChild(tabNum) {
         var num = 1;
         var checkLast = false;
+        var isNewLayer = true;
         while(true) {
           if(_child(num) === undefined) { break; } // break when no more child
           switch(mode) {
@@ -198,8 +239,7 @@ var iBasics = (function(){
               break;
             case MODE.MIN:
               if(_child(num+1) === undefined) { checkLast = true; }
-              tempStr = tempStr + _child(num).tree(mode, (treeDepth+1), checkLast);
-              if(!checkLast) { tempStr += "\n"; }
+              tempStr += _child(num).tree(mode, (treeDepth+1), checkLast, isNewLayer);
               break;
             case MODE.ONE:
               newLine(tabs + CHILD + num + ": { " + "value: " + _child(num).value +  " },");
@@ -210,15 +250,17 @@ var iBasics = (function(){
         }
       }
       // show branches
-      function showBranches() {
+      function showBranches(lastTab) {
+        var tabStr;
         if(treeDepth > 1) {
+          tabStr = lastTab.substr(0, (lastTab.length-1));
           if(!last) {
-            return "┣ ";
+            return tabStr + "┣ ";
           }else{
-            return "┗ ";
+            return tabStr + "┗ ";
           }
         }else{
-          return "";
+          return lastTab;
         }
       }
       // display tree depending on mode
@@ -232,8 +274,7 @@ var iBasics = (function(){
           tempStr = tempStr + lastTab + "},";
           break;
         case MODE.MIN:
-          tempStr = tempStr + lastTab + showBranches() + _ll[VALUE];
-          if(!last) { tempStr += "\n"; }
+          newLine(showBranches(lastTab) + _ll[VALUE]);
           dispChild();
           break;
         case MODE.ONE:
@@ -261,12 +302,14 @@ var iBasics = (function(){
     function _addChild(value) {
       var _newChildStr = CHILD + to.finding.nextNumberOfPropertyList(CHILD).in(this.head);
       _ll[_newChildStr] = _doublyLinkedList(value, this);
+      returnObj[_newChildStr] = _ll[_newChildStr];
       return _ll[_newChildStr];
     }
 
     // add property to node
     function _addProperty(property, value) {
       _ll[property] = value;
+      returnObj[property] = _ll[property];
       return _ll[property];
     }
 
@@ -274,21 +317,14 @@ var iBasics = (function(){
     function _addPropertyList(propertyListName, value) {
       var _newPropertyStr = propertyListName + to.finding.nextNumberOfPropertyList(propertyListName).in(this.head);
       _ll[_newPropertyStr] = value;
+      returnObj[_newPropertyStr] = _ll[_newPropertyStr];
       return _ll[_newPropertyStr];
     }
 
-    return {
-      parent: _parent(),
-      value: _value(),
-      depth: _depth(),
-      child: _child,
-      findChild: _findChild,
-      tree: _tree,
-      head: _head(),
-      addChild: _addChild,
-      addProperty: _addProperty,
-      addPropertyList: _addPropertyList
-    };
+    // find node with value
+
+
+    return returnObj;
 
   });
 
@@ -305,12 +341,17 @@ var iBasics = (function(){
 });
 
 var to = iBasics();
+
+// testing area
 var myLL = to.doublyLinkedList('document', null);
 var lol = myLL.addChild('lol');
 var fedora = myLL.addChild('fedora');
-var haha = lol.addChild('haha');
-myLL.addProperty('USA', '#1');
-myLL.addPropertyList('UK', 'tea');
-myLL.addPropertyList('UK', 'queue');
-myLL.addPropertyList('UK', 'queen');
-console.log(myLL.tree(MODE.MAX));
+lol.addChild('dank memes');
+lol.addChild('cats');
+lol.addChild('interwebs');
+lol.child2.addChild('meow');
+lol.child2.addChild('nyan');
+lol.child2.addChild('doraemon');
+fedora.addChild('trench coat');
+fedora.addChild('neckbeard');
+console.log(myLL.tree(MODE.MIN));
