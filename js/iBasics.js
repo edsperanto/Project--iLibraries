@@ -207,13 +207,11 @@ var iBasics = (function(){
       function newLine(str) {
         tempStr = tempStr + str + NL;
       }
-      // display parent value
-      function dispParent(parent) {
-        if(_ll[PARENT] === null) {
-          return null;
-        }else{
-          return _ll[PARENT].value;
-        }
+      // show node name if is DOM node
+      function _displayNode(node) {
+        var newNode;
+        if(node === null) { return null; }
+        return (node.nodeName === undefined) ? (node) : (node.nodeName);
       }
       // disp child
       function dispChild(tabNum) {
@@ -269,20 +267,20 @@ var iBasics = (function(){
       switch(mode) {
         case MODE.MAX:
           newLine(OCB);
-          newLine(tabs + "value: " + _ll[VALUE] + COMMA);
-          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + COMMA);
+          newLine(tabs + "value: " + _displayNode(_ll[VALUE]) + COMMA);
+          newLine(tabs + "parent: " + _displayNode(_ll[PARENT]?_ll[PARENT].value:null) + COMMA);
           newLine(tabs + "depth: " + _ll[DEPTH] + COMMA);
           dispChild();
           tempStr += lastTab + _closingBracket();
           break;
         case MODE.MIN:
-          newLine(showBranches(lastTab) + _ll[VALUE]);
+          newLine(showBranches(lastTab) + _displayNode(_ll[VALUE]));
           dispChild();
           break;
         case MODE.ONE:
           newLine(OCB);
-          newLine(tabs + "value: " + _ll[VALUE] + COMMA);
-          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + COMMA);
+          newLine(tabs + "value: " + _displayNode(_ll[VALUE]) + COMMA);
+          newLine(tabs + "parent: " + _displayNode(_ll[PARENT]?_ll[PARENT].value:null) + COMMA);
           newLine(tabs + "depth: " + _ll[DEPTH] + COMMA);
           dispChild();
           newLine(NL + CCB);
