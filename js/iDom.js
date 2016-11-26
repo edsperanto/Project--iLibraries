@@ -1,18 +1,26 @@
+// dom manager
 var iDom = (function() {
 
-  var structure = {
+  var _root = to.doublyLinkedList(document);
+  _body = _root.addChild(document.getElementsByTagName('body')[0]);
 
-  };
 
-  function _find(element) {
+  (function _autoGenStructure() {
+
+  })();
+
+  function _addElement(tag, label, text) {
 
   }
 
-  to.setting.newPropertyOfList('sibling').to(document).in(structure);
+  function _showTree() {
+    console.log(_root.tree(MODE.MIN));
+  }
 
   return {
-    find: _find
+    currentElement: _root.head,
+    showTree: _showTree
   };
 });
 
-page = iDom();
+var page = iDom();
