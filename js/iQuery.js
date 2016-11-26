@@ -125,10 +125,5 @@ var iQuery = (function(elementName) {
   };
 });
 
-// assign to "$"
+// assign iQuery() to "$"
 var $ = iQuery;
-
-// testing area
-// var myLL = to.doublyLinkedList(document);
-// myBody = myLL.addProperty('myBody', $('body').item);
-//var myBody = to.finding.property('myBody').in.object(myLL.head);

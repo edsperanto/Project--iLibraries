@@ -16,7 +16,6 @@ var SQ = '\''; // single quote
 var OCB = '{'; // open curly bracket
 var CCB = '}'; // closing curly bracket
 
-
 // iBasics
 var iBasics = (function(){
 
@@ -138,7 +137,7 @@ var iBasics = (function(){
     // variables
     var _ll = {};
     var returnObj = {
-      head: _head(),
+      head: _ll,
       child: _child,
       findChild: _findChild,
       deepSearch: _deepSearch,
@@ -148,15 +147,12 @@ var iBasics = (function(){
       addPropertyList: _addPropertyList
     };
 
-    // add properties to node
-    _addProperty(VALUE, newValue);
-    _addProperty(PARENT, (newParent === undefined) ? null : newParent);
-    _addProperty(DEPTH, (_ll[PARENT] === null) ? ONE : (_ll[PARENT].depth + ONE));
-
-    // return head of current node
-    function _head() {
-      return _ll;
-    }
+    // add properties to node (auto run)
+    (function _addBasicProperties() {
+      _addProperty(VALUE, newValue);
+      _addProperty(PARENT, (newParent === undefined) ? null : newParent);
+      _addProperty(DEPTH, (_ll[PARENT] === null) ? ONE : (_ll[PARENT].depth + ONE));
+    })();
 
     // return child of node (num known)
     function _child(num) {
@@ -325,41 +321,14 @@ var iBasics = (function(){
 
   });
 
-  //
-  var returnObj = {
+  // return object
+  return {
     mapping: _mapping,
     setting: _setting(),
     finding: _finding(),
     doublyLinkedList: _doublyLinkedList
   };
-  var then = returnObj;
-
-  return returnObj;
 });
 
+// assign iBasics() to "to"
 var to = iBasics();
-
-// testing -area- ^51 HUMAN SUBJECTS MKULTRA
-var myLL = to.doublyLinkedList('dank memes');
-var lol = myLL.addChild('lol');
-var fedora = myLL.addChild('fedora');
-var god = myLL.addChild('there is no god');
-lol.addChild('feminism');
-lol.addChild('cats');
-lol.addChild('interwebs');
-lol.child2.addChild('meow');
-lol.child2.addChild('nyan');
-lol.child2.addChild('doraemon');
-lol.child3.addChild('4chan');
-lol.child3.addChild('reddit');
-lol.child3.addChild('tumblr');
-lol.child3.child2.addChild('iAMA');
-lol.child3.child2.addChild('showerthoughts');
-lol.child3.child2.addChild('circlejerk');
-fedora.addChild('trench coat');
-fedora.addChild('neckbeard');
-god.addChild('there is only Julian');
-god.findChild('there is only Julian').addChild('Shrek is love, Shrek is life');
-console.log(myLL.tree(MODE.MIN));
-console.log(myLL.tree(MODE.ONE));
-console.log(myLL.tree(MODE.MAX));

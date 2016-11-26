@@ -23,4 +23,5 @@ var iDom = (function() {
   };
 });
 
+// assign iDom() to "page"
 var page = iDom();
