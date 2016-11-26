@@ -117,6 +117,7 @@ var iBasics = (function(){
     var VALUE = 'value';
     var PARENT = 'parent';
     var DEPTH = 'depth';
+    var ISLASTCHILD = 'isLastChild';
     var CHILD = 'child';
     var TAB = '\t';
     var NL = '\n';
@@ -124,7 +125,6 @@ var iBasics = (function(){
     // variables
     var _ll = {};
     var _childStr = 'child1';
-    var _isLastChild = false;
 
     // add properties to node
     _ll[VALUE] = newValue;
@@ -142,8 +142,7 @@ var iBasics = (function(){
       head: _head(),
       addChild: _addChild,
       addProperty: _addProperty,
-      addPropertyList: _addPropertyList,
-      isLastChild: _isLastChild
+      addPropertyList: _addPropertyList
     };
 
     // add 'parent' property to node
@@ -196,20 +195,21 @@ var iBasics = (function(){
     }
 
     // display node tree
-    function _tree(mode, treeDepth, last, newLayer) {
+    function _tree(mode, last, newLayer, tabStr) {
       // variables
       var tabs = "";
       var lastTab = "";
       var tempStr = "";
       var endOfBranch = false;
+      var isLastChild = false;
       // track tabs needed
       (function trackTabs() {
-        var curNode = _ll;
-        if(treeDepth === undefined) { treeDepth = 1; }
-        for(var i = 0; i < treeDepth; i++) {
-          tabs += TAB;
-          if(newLayer === true && i > 0) {
-            tabs += "┃";
+        if(tabStr === undefined) {
+          tabs = TAB;
+        }else{
+          tabs += tabStr;
+          if(newLayer === true) {
+            tabs += TAB + "┃";
           }
         }
         lastTab = tabs.substr(1);
@@ -239,7 +239,7 @@ var iBasics = (function(){
               break;
             case MODE.MIN:
               if(_child(num+1) === undefined) { checkLast = true; }
-              tempStr += _child(num).tree(mode, (treeDepth+1), checkLast, isNewLayer);
+              tempStr += _child(num).tree(mode, checkLast, isNewLayer, tabs);
               break;
             case MODE.ONE:
               newLine(tabs + CHILD + num + ": { " + "value: " + _child(num).value +  " },");
@@ -252,12 +252,16 @@ var iBasics = (function(){
       // show branches
       function showBranches(lastTab) {
         var tabStr;
-        if(treeDepth > 1) {
-          tabStr = lastTab.substr(0, (lastTab.length-1));
+        if(newLayer) {
           if(!last) {
+            tabStr = lastTab.substr(0, (lastTab.length-1));
             return tabStr + "┣ ";
           }else{
-            return tabStr + "┗ ";
+            tabs = tabs.substr(0, (tabs.length-2));
+            tabs += TAB;
+            lastTab = tabs.substr(1);
+            tabStr = lastTab.substr(0, (lastTab.length-1));
+            return tabStr + TAB + "┗ ";
           }
         }else{
           return lastTab;
@@ -343,15 +347,22 @@ var iBasics = (function(){
 var to = iBasics();
 
 // testing area
-var myLL = to.doublyLinkedList('document', null);
+var myLL = to.doublyLinkedList('document');
 var lol = myLL.addChild('lol');
 var fedora = myLL.addChild('fedora');
+var kenshin = myLL.addChild('kenshin');
 lol.addChild('dank memes');
 lol.addChild('cats');
 lol.addChild('interwebs');
 lol.child2.addChild('meow');
 lol.child2.addChild('nyan');
 lol.child2.addChild('doraemon');
+lol.child3.addChild('4chan');
+lol.child3.addChild('reddit');
+lol.child3.addChild('tumblr');
+lol.child3.child2.addChild('funny');
+lol.child3.child2.addChild('showerthoughts');
+lol.child3.child2.addChild('circlejerk');
 fedora.addChild('trench coat');
 fedora.addChild('neckbeard');
 console.log(myLL.tree(MODE.MIN));
