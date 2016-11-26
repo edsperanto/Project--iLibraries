@@ -1,9 +1,21 @@
 // const
+var ZERO = 0;
+var ONE = 1;
 var MODE = { // param for tree() in doublyLinkedList()
   MAX: 'detailed',
   MIN: 'simplified',
   ONE: 'selected-only'
 };
+var EMPTY_STRING = '';
+var SPACE = ' ';
+var COMMA = ',';
+var COLON = ':';
+var TAB = '\t'; // tab
+var NL = '\n'; // new line
+var SQ = '\''; // single quote
+var OCB = '{'; // open curly bracket
+var CCB = '}'; // closing curly bracket
+
 
 // iBasics
 var iBasics = (function(){
@@ -113,14 +125,15 @@ var iBasics = (function(){
 
   // doublyLinkedList
   var _doublyLinkedList = (function(newValue, newParent) {
+
     // const
     var VALUE = 'value';
     var PARENT = 'parent';
     var DEPTH = 'depth';
     var CHILD = 'child';
-    var TAB = '\t';
-    var NL = '\n';
-    var SQ = '\'';
+    var BD = '│'; // branch down
+    var BO = '├'; // branch out
+    var BE = '└'; // branch end
 
     // variables
     var _ll = {};
@@ -137,8 +150,8 @@ var iBasics = (function(){
 
     // add properties to node
     _addProperty(VALUE, newValue);
-    _addProperty(PARENT, newParent === undefined ? null : newParent);
-    _addProperty(DEPTH, _ll[PARENT] === null ? 1 : (_ll[PARENT].depth + 1));
+    _addProperty(PARENT, (newParent === undefined) ? null : newParent);
+    _addProperty(DEPTH, (_ll[PARENT] === null) ? ONE : (_ll[PARENT].depth + ONE));
 
     // return head of current node
     function _head() {
@@ -152,7 +165,7 @@ var iBasics = (function(){
 
     // return child of node (num unknown) in next depth, search through value
     function _findChild(value) {
-      var _searchNum = 1;
+      var _searchNum = ONE;
       var _searchedChild = _ll[CHILD + _searchNum];
       while(_searchedChild.value !== value) {
         _searchNum++;
@@ -169,9 +182,9 @@ var iBasics = (function(){
     // display node tree
     function _tree(mode, last, newLayer, tabStr) {
       // variables
-      var tabs = "";
-      var lastTab = "";
-      var tempStr = "";
+      var tabs = EMPTY_STRING;
+      var lastTab = EMPTY_STRING;
+      var tempStr = EMPTY_STRING;
       var endOfBranch = false;
       var isLastChild = false;
       // track tabs needed
@@ -187,7 +200,7 @@ var iBasics = (function(){
             break;
           case MODE.MIN:
             if(newLayer === true) {
-              tabs += TAB + "│";
+              tabs += TAB + BD;
             }
             break;
         }
@@ -216,14 +229,14 @@ var iBasics = (function(){
           switch(mode) {
             case MODE.MAX:
               if(_child(num+1) === undefined) { checkLast = true; }
-              newLine(tabs + CHILD + num + ": " + _child(num).tree(mode, checkLast, false, tabs));
+              newLine(tabs + CHILD + num + COLON + SPACE + _child(num).tree(mode, checkLast, false, tabs));
               break;
             case MODE.MIN:
               if(_child(num+1) === undefined) { checkLast = true; }
               tempStr += _child(num).tree(mode, checkLast, isNewLayer, tabs);
               break;
             case MODE.ONE:
-              newLine(tabs + CHILD + num + ": { " + "value: " + _child(num).value +  " },");
+              newLine(tabs + CHILD + num + COLON + SPACE + OCB + SPACE + "value: " + _child(num).value + SPACE + CCB + COMMA);
               if(_child(num+1) === undefined) { checkLast = true; }
               if(checkLast) { tempStr = tempStr.substr(0, (tempStr.length-2)); }
           }
@@ -236,13 +249,13 @@ var iBasics = (function(){
         if(newLayer) {
           if(!last) {
             tabStr = lastTab.substr(0, (lastTab.length-1));
-            return tabStr + "├ ";
+            return tabStr + BO + SPACE;
           }else{
             tabs = tabs.substr(0, (tabs.length-2));
             tabs += TAB;
             lastTab = tabs.substr(1);
             tabStr = lastTab.substr(0, (lastTab.length-1));
-            return tabStr + TAB + "└ ";
+            return tabStr + TAB + BE + SPACE;
           }
         }else{
           return lastTab;
@@ -251,18 +264,18 @@ var iBasics = (function(){
       // return closing bracket depending on if last
       function _closingBracket() {
         if(last || last === undefined) {
-          return "}";
+          return CCB;
         }else{
-          return "},";
+          return CCB + COMMA;
         }
       }
       // display tree depending on mode
       switch(mode) {
         case MODE.MAX:
-          newLine("{");
-          newLine(tabs + "value: " + _ll[VALUE] + ",");
-          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
-          newLine(tabs + "depth: " + _ll[DEPTH] + ",");
+          newLine(OCB);
+          newLine(tabs + "value: " + _ll[VALUE] + COMMA);
+          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + COMMA);
+          newLine(tabs + "depth: " + _ll[DEPTH] + COMMA);
           dispChild();
           tempStr += lastTab + _closingBracket();
           break;
@@ -271,12 +284,12 @@ var iBasics = (function(){
           dispChild();
           break;
         case MODE.ONE:
-          newLine("{");
-          newLine(tabs + "value: " + _ll[VALUE] + ",");
-          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + ",");
-          newLine(tabs + "depth: " + _ll[DEPTH] + ",");
+          newLine(OCB);
+          newLine(tabs + "value: " + _ll[VALUE] + COMMA);
+          newLine(tabs + "parent: " + dispParent(_ll[PARENT]) + COMMA);
+          newLine(tabs + "depth: " + _ll[DEPTH] + COMMA);
           dispChild();
-          newLine(NL + "}");
+          newLine(NL + CCB);
           break;
         default:
           newLine(SQ + mode + SQ + " is not a valid mode");
@@ -348,3 +361,5 @@ fedora.addChild('neckbeard');
 god.addChild('there is only Julian');
 god.findChild('there is only Julian').addChild('Shrek is love, Shrek is life');
 console.log(myLL.tree(MODE.MIN));
+console.log(myLL.tree(MODE.ONE));
+console.log(myLL.tree(MODE.MAX));
